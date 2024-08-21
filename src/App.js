@@ -307,7 +307,7 @@ function App() {
     <div>
 
       <div className="navbar">
-        <div className="logo">ImageEdit</div>
+        <div className="logo">Imgdit.com</div>
         <div className="menu">
           <input type="file" id="imageInput" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} />
         </div>

@@ -159,3 +159,18 @@ html {
   }
   
   
+
+  .hidden-navbar {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    visibility: hidden;
+    padding: 0;
+  }
+  
+  .visible-navbar {
+    max-height: 100vh; /* 충분히 큰 값으로 설정 */
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.3s ease-in, opacity 0.3s ease-in, visibility 0.3s ease-in;
+  }

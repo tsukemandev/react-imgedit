@@ -11,6 +11,10 @@ function App() {
   const buttonRef2 = useRef(null)
   const resetButtonRef = useRef(null)
 
+  const isNavbarVisible = useRef(false); // useState 대신 useRef로 관리
+  const navbarRef = useRef(null);
+
+
   var originalFile;
   var imgObj
   var canvas
@@ -128,6 +132,22 @@ function App() {
       console.log('?? : ' + obj == imgObj)
     }
   }
+
+  const toggleNavbar = (e) => {
+    e.preventDefault()
+
+    isNavbarVisible.current = !isNavbarVisible.current;
+    if (navbarRef.current) {
+      if (isNavbarVisible.current) {
+        navbarRef.current.classList.add('visible-navbar');
+        navbarRef.current.classList.remove('hidden-navbar');
+      } else {
+        navbarRef.current.classList.add('hidden-navbar');
+        navbarRef.current.classList.remove('visible-navbar');
+      }
+    }
+  };
+
 
   function applyFilterBackend() {
     console.log('applied filter backend')
@@ -299,12 +319,29 @@ function App() {
 
       <div className="editor-container">
 
+
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
           <div className="container-fluid">
-            <a className="navbar-brand" href="#">Filter</a>
+            <a className="navbar-brand" href="#" style={{fontSize : '20px'}}>Editor</a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon"></span>
             </button>
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav">
+
+                <li className="nav-item">
+                  <a href='' className="nav-link" onClick={toggleNavbar}>Filter</a>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+
+        <nav className={"navbar navbar-expand-lg navbar-dark bg-dark hidden-navbar"} ref={navbarRef}>
+          <div className="container-fluid">
+            
             <div className="collapse navbar-collapse" id="navbarNav">
               <ul className="navbar-nav">
 

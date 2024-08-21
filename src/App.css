@@ -1,38 +1,160 @@
-.App {
-  text-align: center;
+body,
+html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+    box-sizing: border-box;
+    height: 100%;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e272e;
+    color: white;
+    padding: 10px 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+.navbar .logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar .menu {
+    display: flex;
+    gap: 15px;
+}
+
+.navbar .menu a,
+.navbar .icons button {
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.navbar .icons {
+    display: flex;
+    gap: 15px;
+}
+
+.editor-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 50px);
+}
+
+.sidebar {
+    background-color: #2f3640;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: flex-start;
+    position: relative;
+    gap: 30px;
+}
+
+.sidebar button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.canvas-area {
+    flex: 1;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.canvas-area canvas {
+    border: 1px dashed #bdc3c7;
+}
+
+.options-bar {
+    background-color: #dcdde1;
+    padding: 10px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.options-bar input[type="range"] {
+    width: 100px;
+}
+
+.right-panel {
+    width: 250px;
+    background-color: #ecf0f1;
+    padding: 20px;
+}
+
+.right-panel h3 {
+    margin-top: 0;
+}
+
+.hover-container {
+    text-align: center;
+    position: relative;
+    display: inline-block;
+}
+
+.hover-box {
+    display: none;
+    position: absolute;
+    top: 100%;
+    /* Position directly below the main menu */
+    left: 0;
+    /* Align to the left of the parent */
+    width: auto;
+    background-color: #333;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    z-index: 1000;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.hover-container:hover .hover-box {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    padding: 10px;
+}
+
+.hover-box button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+
+.button-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
   }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+  
+  .sticky-button {
+    position: sticky;
+    bottom: 0;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
   }
-  to {
-    transform: rotate(360deg);
-  }
-}
+  
+  

@@ -1,25 +1,399 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
 
+import React, { useEffect, useRef, useState } from 'react';
+import { fabric } from 'fabric';
+
 function App() {
+  const fileInputRef = useRef(null);
+  const canvasRef = useRef(null);
+  const buttonRef = useRef(null)
+  const buttonRef2= useRef(null)
+  const resetButtonRef = useRef(null)
+  var imgObj
+  var canvas
+
+  //const imgEl = useRef(null)
+  const options = {
+    backgroundColor: 'rgb(18,18,36)',
+    selectionColor: 'blue',
+    // 추가 옵션들...
+  };
+
+
+  useEffect(() => {
+
+    applyFilterBackend()
+
+    const eventFunc = function (event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+
+        //canvas = new fabric.Canvas('myCanvas', options);
+
+        fabric.Image.fromURL(e.target.result, function (img) {
+          if (imgObj) {
+            canvas.dispose();
+          }
+
+          // 새로운 캔버스를 생성합니다.
+          canvas = new fabric.Canvas('myCanvas', options);
+
+          canvasRef.current.style.display = 'block';
+          resetButtonRef.current.style.display = 'block'
+          buttonRef.current.style.display = 'none'
+          buttonRef2.current.style.display = ''
+
+          // 이미지 설정
+          img.set({
+            left: 0,
+            top: 0,
+            angle: 0,
+            opacity: 0.85,
+            selectable: false, // 선택 불가능하게 설정
+          });
+
+          // 현재 뷰포트의 너비에 맞춰서 이미지 크기를 조정
+          const viewportWidth = window.innerWidth * 0.25;
+          const scaleFactor = viewportWidth / img.width; // 너비 기준 스케일링 팩터 계산
+
+          img.scale(scaleFactor); // 스케일링 적용
+
+          imgObj = img;
+          canvas.add(img);
+          //canvas.add(el);
+
+          // 캔버스의 크기를 이미지의 크기에 맞게 조정
+          canvas.setWidth(img.getScaledWidth());
+          canvas.setHeight(img.getScaledHeight());
+
+          // 이미지 캔버스 중앙에 배치
+          canvas.centerObject(img);
+          canvas.renderAll();
+        });
+
+      }
+      if (file) {
+        reader.readAsDataURL(file);
+      }
+    }
+
+    document.getElementById('imageInput').addEventListener('change', eventFunc);
+
+    return () => {
+      document.getElementById('imageInput').removeEventListener('change', eventFunc)
+    };
+  }, []);
+
+
+  // ##########################################
+
+  function filterTest() {
+    if (imgObj) {
+      const obj = canvas.getActiveObject()
+      console.log('?? : ' + obj == imgObj)
+    }
+  }
+
+  function applyFilterBackend() {
+    console.log('applied filter backend')
+    fabric.filterBackend = new fabric.Canvas2dFilterBackend()
+  }
+
+
+
+
+
+  function setGrayScale(style = 'average') {
+    if (imgObj) {
+      if (!style) {
+        imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Grayscale')
+        imgObj.applyFilters();
+        canvas.renderAll()
+        return
+      }
+      const filter = new fabric.Image.filters.Grayscale({ mode: style })
+      imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Grayscale')
+      imgObj.filters.push(filter)
+      imgObj.applyFilters();
+      canvas.renderAll()
+    }
+    //applyFilter(0, this.checked && new f.Grayscale())
+  }
+
+
+  function setInvert() {
+    if (imgObj) {
+      const filter = new fabric.Image.filters.Invert()
+      imgObj.filters.push(filter)
+      imgObj.applyFilters()
+      canvas.renderAll()
+    }
+  }
+
+
+  function setSepia() {
+    if (imgObj) {
+      const filter = new fabric.Image.filters.Sepia()
+
+      const findObj = imgObj.filters.find(filter => filter.type === 'Sepia')
+      if (findObj) {
+        imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Sepia')
+        imgObj.applyFilters();
+        canvas.renderAll()
+        return
+      }
+
+      imgObj.filters.push(filter)
+      imgObj.applyFilters()
+      canvas.renderAll()
+    }
+  }
+
+  function setContrast(contrast = 0.25) {
+    if (imgObj) {
+      const filter = new fabric.Image.filters.Contrast({
+        contrast: contrast
+      });
+      const findObj = imgObj.filters.find(filter => filter.type === 'Contrast')
+      if (findObj) {
+
+        imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Contrast')
+
+        if (findObj.contrast === contrast) {
+          imgObj.applyFilters();
+          canvas.renderAll()
+          return
+        }
+      }
+
+      imgObj.filters.push(filter)
+      imgObj.applyFilters()
+      canvas.renderAll()
+    }
+  }
+
+  function setBlur(blur = 0.5) {
+    if (imgObj) {
+      const filter = new fabric.Image.filters.Blur({
+        blur: blur
+      })
+
+      const findObj = imgObj.filters.find(filter => filter.type === 'Blur')
+      if (findObj) {
+        imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Blur')
+
+        if (findObj.blur === blur) {
+          imgObj.applyFilters();
+          canvas.renderAll()
+          return
+        }
+      }
+
+      imgObj.filters.push(filter)
+      imgObj.applyFilters()
+      canvas.renderAll()
+    }
+  }
+
+  function setBrightness(brightness = 0.05) {
+
+    console.log('brightness : ' + brightness)
+
+    if (imgObj) {
+    // 기존 밝기 필터 제거
+    imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Brightness');
+
+    const filter = new fabric.Image.filters.Brightness({
+      brightness: brightness
+    });
+
+    imgObj.filters.push(filter);
+    imgObj.applyFilters();
+    canvas.renderAll();
+    }
+  }
+
+  function reset() {
+    imgObj.filters = []
+    imgObj.applyFilters();
+    canvas.renderAll();
+  }
+
+  function saveAsJPG() {
+    // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
+    const dataURL = canvas.toDataURL({
+      format: 'jpeg',
+      quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
+    });
+  
+    // 링크 요소를 생성하여 다운로드를 트리거합니다.
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = 'canvas-image.jpg'; // 저장할 파일 이름
+    link.click(); // 다운로드 실행
+  }
+  
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <div>
+
+      <div className="navbar">
+        <div className="logo">ImageEdit</div>
+        <div className="menu">
+          <input type="file" id="imageInput" accept="image/*"  ref={fileInputRef} style={{display : 'none'}} />
+        </div>
+      </div>
+
+      <div className="editor-container">
+
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div className="container-fluid">
+            <a className="navbar-brand" href="#">Filter</a>
+            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span className="navbar-toggler-icon"></span>
+            </button>
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav">
+
+                <li className="nav-item dropdown">
+                  <a className="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Grayscale
+                  </a>
+                  <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a className="dropdown-item" onClick={() => { setGrayScale('average') }}>average</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setGrayScale('lightness') }}>lightness</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setGrayScale('luminosity') }}>luminosity</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setGrayScale('') }}>none</a></li>
+                  </ul>
+                </li>
+
+                <li className="nav-item dropdown">
+                  <a className="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Contrast
+                  </a>
+                  <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a className="dropdown-item" onClick={() => { setContrast(0.25) }}>0.25</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setContrast(0.5) }}>0.5</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setContrast(0.75) }}>0.75</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setContrast(1) }}>1.0</a></li>
+                  </ul>
+                </li>
+
+                <li className="nav-item dropdown">
+                  <a className="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Blur
+                  </a>
+                  <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a className="dropdown-item" onClick={() => { setBlur(0.5) }}>0.5</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBlur(1) }}>1.0</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBlur(1.5) }}>1.5</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBlur(2) }}>2.0</a></li>
+                  </ul>
+                </li>
+
+                <li className="nav-item dropdown">
+                  <a className="nav-link dropdown-toggle" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Brightness
+                  </a>
+                  <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.05) }}>0.05</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.1) }}>0.1</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.15) }}>0.15</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.2) }}>0.2</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.25) }}>0.25</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.3) }}>0.3</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.35) }}>0.35</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.4) }}>0.4</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.45) }}>0.45</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.5) }}>0.5</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.55) }}>0.55</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.6) }}>0.6</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.65) }}>0.65</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.7) }}>0.7</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.75) }}>0.75</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.8) }}>0.8</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.85) }}>0.85</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.9) }}>0.9</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(0.95) }}>0.95</a></li>
+                    <li><a className="dropdown-item" onClick={() => { setBrightness(1) }}>1.0</a></li>
+
+                  </ul>
+                </li>
+
+                <li className="nav-item">
+                  <a className="nav-link" onClick={setSepia}>Sepia</a>
+                </li>
+                <li className="nav-item">
+                  <a className="nav-link" onClick={setInvert}>Invert</a>
+                </li>
+                <li className="nav-item">
+                  <a className="nav-link disabled" tabIndex="-1" aria-disabled="true">Disabled</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+        { /*
+        <div className="sidebar">
+
+
+          <div className="hover-container">
+            <button className="hover-button">Grayscale</button>
+            <div className="hover-box">
+              <button onClick={() => { setGrayScale('average') }}>average</button>
+              <button onClick={() => { setGrayScale('lightness') }}>lightness</button>
+              <button onClick={() => { setGrayScale('luminosity') }}>luminosity</button>
+              <button onClick={() => { setGrayScale('') }}>none</button>
+            </div>
+          </div>
+
+
+          <button onClick={setInvert}>Invert</button>
+          <button onClick={setSepia}>Sepia</button>
+          <div className="hover-container">
+            <button className='hover-button'>Contrast</button>
+            <div className="hover-box">
+              <button onClick={() => { setContrast(0.25) }}>0.25</button>
+              <button onClick={() => { setContrast(0.5) }}>0.5</button>
+              <button onClick={() => { setContrast(0.75) }}>0.75</button>
+              <button onClick={() => { setContrast(1) }}>1.0</button>
+            </div>
+          </div>
+
+          <div className="hover-container">
+            <button className='hover-button'>Blur</button>
+            <div className="hover-box">
+              <button onClick={() => { setBlur(0.5) }}>0.5</button>
+              <button onClick={() => { setBlur(1) }}>1.0</button>
+              <button onClick={() => { setBlur(1.5) }}>1.5</button>
+              <button onClick={() => { setBlur(2) }}>2.0</button>
+            </div>
+          </div>
+
+        </div>   */ }
+
+        
+        <div className="canvas-area" style={{backgroundColor : 'rgb(221 221 221)'}}>
+          <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => { fileInputRef.current.click() }} ref={buttonRef}>Select Image</button>
+          <canvas id="myCanvas" ref={canvasRef} style={{ display: 'none' }}></canvas>
+        </div>
+
+        <div className="button-container" ref={resetButtonRef} style={{ display: 'none' }}>
+          <button type="button" className="btn btn-primary btn-lg btn-block sticky-button" onClick={() => { fileInputRef.current.click() }}
+           ref={buttonRef2} style={{marginRight : '20px', display : 'none'}}>Select Image</button>
+          <button className="btn btn-secondary btn-lg btn-block sticky-button" onClick={reset}>Reset</button>
+          <button className="btn btn-secondary btn-lg btn-block sticky-button" onClick={saveAsJPG}>save</button>
+        </div>
+
+      </div>
+
+
+
+    </div>)
+
 }
 
 export default App;

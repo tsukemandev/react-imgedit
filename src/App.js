@@ -14,6 +14,7 @@ function App() {
   var originalFile;
   var imgObj
   var canvas
+  var scaleFactor
 
   var originalWidth
   var originalHeight
@@ -81,7 +82,7 @@ function App() {
           const scaleY = maxCanvasHeight / originalHeight;
 
           // 이미지가 뷰포트에 맞게끔 가장 작은 스케일 값 사용
-          const scaleFactor = Math.min(scaleX, scaleY);
+          scaleFactor = Math.min(scaleX, scaleY);
 
           img.scale(scaleFactor); // 스케일링 적용
 
@@ -274,6 +275,10 @@ function App() {
       link.download = 'canvas-image.jpg'; // 저장할 파일 이름
       link.click(); // 다운로드 실행
 
+
+      imgObj.scale(scaleFactor)
+      canvas.setWidth(originalWidth * scaleFactor)
+      canvas.setHeight(originalHeight * scaleFactor)
     }
   }
 

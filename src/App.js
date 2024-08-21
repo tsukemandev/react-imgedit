@@ -8,10 +8,15 @@ function App() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
   const buttonRef = useRef(null)
-  const buttonRef2= useRef(null)
+  const buttonRef2 = useRef(null)
   const resetButtonRef = useRef(null)
+
+  var originalFile;
   var imgObj
   var canvas
+
+  var originalWidth
+  var originalHeight
 
   //const imgEl = useRef(null)
   const options = {
@@ -37,6 +42,11 @@ function App() {
             canvas.dispose();
           }
 
+
+          originalWidth = img.width;
+          originalHeight = img.height;
+
+          originalFile = new fabric.Image(e.target.result)
           // 새로운 캔버스를 생성합니다.
           canvas = new fabric.Canvas('myCanvas', options);
 
@@ -54,19 +64,41 @@ function App() {
             selectable: false, // 선택 불가능하게 설정
           });
 
-          // 현재 뷰포트의 너비에 맞춰서 이미지 크기를 조정
-          const viewportWidth = window.innerWidth * 0.25;
-          const scaleFactor = viewportWidth / img.width; // 너비 기준 스케일링 팩터 계산
+
+
+
+
+          // 현재 뷰포트 크기 가져오기
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+
+          // 원하는 캔버스 크기 계산 (예: 뷰포트의 80% 크기로 설정)
+          const maxCanvasWidth = viewportWidth * 0.8;
+          const maxCanvasHeight = viewportHeight * 0.8;
+
+          // 이미지의 원본 크기와 비교하여 스케일 계산
+          const scaleX = maxCanvasWidth / originalWidth;
+          const scaleY = maxCanvasHeight / originalHeight;
+
+          // 이미지가 뷰포트에 맞게끔 가장 작은 스케일 값 사용
+          const scaleFactor = Math.min(scaleX, scaleY);
 
           img.scale(scaleFactor); // 스케일링 적용
+
+
+
+
+
 
           imgObj = img;
           canvas.add(img);
           //canvas.add(el);
 
           // 캔버스의 크기를 이미지의 크기에 맞게 조정
-          canvas.setWidth(img.getScaledWidth());
-          canvas.setHeight(img.getScaledHeight());
+          canvas.setWidth(originalWidth * scaleFactor);
+          canvas.setHeight(originalHeight * scaleFactor);
+
+          console.log('original : ' + originalFile.width + ' copy : ' + img.width)
 
           // 이미지 캔버스 중앙에 배치
           canvas.centerObject(img);
@@ -202,16 +234,16 @@ function App() {
     console.log('brightness : ' + brightness)
 
     if (imgObj) {
-    // 기존 밝기 필터 제거
-    imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Brightness');
+      // 기존 밝기 필터 제거
+      imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Brightness');
 
-    const filter = new fabric.Image.filters.Brightness({
-      brightness: brightness
-    });
+      const filter = new fabric.Image.filters.Brightness({
+        brightness: brightness
+      });
 
-    imgObj.filters.push(filter);
-    imgObj.applyFilters();
-    canvas.renderAll();
+      imgObj.filters.push(filter);
+      imgObj.applyFilters();
+      canvas.renderAll();
     }
   }
 
@@ -221,20 +253,30 @@ function App() {
     canvas.renderAll();
   }
 
-  function saveAsJPG() {
-    // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
-    const dataURL = canvas.toDataURL({
-      format: 'jpeg',
-      quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
-    });
-  
-    // 링크 요소를 생성하여 다운로드를 트리거합니다.
-    const link = document.createElement('a');
-    link.href = dataURL;
-    link.download = 'canvas-image.jpg'; // 저장할 파일 이름
-    link.click(); // 다운로드 실행
+  function saveAsJPG(e) {
+    e.preventDefault();
+
+    if (imgObj) {
+
+      imgObj.scale(1)
+      canvas.setWidth(originalWidth)
+      canvas.setHeight(originalHeight)
+
+      // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
+      const dataURL = canvas.toDataURL({
+        format: 'png',
+        quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
+      });
+
+      // 링크 요소를 생성하여 다운로드를 트리거합니다.
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'canvas-image.jpg'; // 저장할 파일 이름
+      link.click(); // 다운로드 실행
+
+    }
   }
-  
+
 
   return (
     <div>
@@ -242,7 +284,11 @@ function App() {
       <div className="navbar">
         <div className="logo">ImageEdit</div>
         <div className="menu">
-          <input type="file" id="imageInput" accept="image/*"  ref={fileInputRef} style={{display : 'none'}} />
+          <input type="file" id="imageInput" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} />
+        </div>
+
+        <div className="save-container" style={{ marginLeft: 'auto', marginRight: '20px' }}>
+          <a href="" style={{ color: 'inherit' }} onClick={saveAsJPG}><i className="fa fa-save" style={{ fontSize: '24px' }}></i></a>
         </div>
       </div>
 
@@ -336,56 +382,16 @@ function App() {
           </div>
         </nav>
 
-        { /*
-        <div className="sidebar">
 
-
-          <div className="hover-container">
-            <button className="hover-button">Grayscale</button>
-            <div className="hover-box">
-              <button onClick={() => { setGrayScale('average') }}>average</button>
-              <button onClick={() => { setGrayScale('lightness') }}>lightness</button>
-              <button onClick={() => { setGrayScale('luminosity') }}>luminosity</button>
-              <button onClick={() => { setGrayScale('') }}>none</button>
-            </div>
-          </div>
-
-
-          <button onClick={setInvert}>Invert</button>
-          <button onClick={setSepia}>Sepia</button>
-          <div className="hover-container">
-            <button className='hover-button'>Contrast</button>
-            <div className="hover-box">
-              <button onClick={() => { setContrast(0.25) }}>0.25</button>
-              <button onClick={() => { setContrast(0.5) }}>0.5</button>
-              <button onClick={() => { setContrast(0.75) }}>0.75</button>
-              <button onClick={() => { setContrast(1) }}>1.0</button>
-            </div>
-          </div>
-
-          <div className="hover-container">
-            <button className='hover-button'>Blur</button>
-            <div className="hover-box">
-              <button onClick={() => { setBlur(0.5) }}>0.5</button>
-              <button onClick={() => { setBlur(1) }}>1.0</button>
-              <button onClick={() => { setBlur(1.5) }}>1.5</button>
-              <button onClick={() => { setBlur(2) }}>2.0</button>
-            </div>
-          </div>
-
-        </div>   */ }
-
-        
-        <div className="canvas-area" style={{backgroundColor : 'rgb(221 221 221)'}}>
+        <div className="canvas-area" style={{ backgroundColor: 'rgb(221 221 221)' }}>
           <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => { fileInputRef.current.click() }} ref={buttonRef}>Select Image</button>
           <canvas id="myCanvas" ref={canvasRef} style={{ display: 'none' }}></canvas>
         </div>
 
         <div className="button-container" ref={resetButtonRef} style={{ display: 'none' }}>
           <button type="button" className="btn btn-primary btn-lg btn-block sticky-button" onClick={() => { fileInputRef.current.click() }}
-           ref={buttonRef2} style={{marginRight : '20px', display : 'none'}}>Select Image</button>
+            ref={buttonRef2} style={{ marginRight: '20px', display: 'none' }}>Select Image</button>
           <button className="btn btn-secondary btn-lg btn-block sticky-button" onClick={reset}>Reset</button>
-          <button className="btn btn-secondary btn-lg btn-block sticky-button" onClick={saveAsJPG}>save</button>
         </div>
 
       </div>

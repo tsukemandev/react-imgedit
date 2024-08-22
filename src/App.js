@@ -15,6 +15,8 @@ function App() {
   const navbarRef = useRef(null);
 
 
+  var isDrawing = false;
+  var cropRect;
   var originalFile;
   var imgObj
   var canvas
@@ -31,110 +33,206 @@ function App() {
   };
 
 
-  useEffect(() => {
 
-    applyFilterBackend()
+  const eventFunc = function (event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function (e) {
 
-    const eventFunc = function (event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
+      if (canvas) {
+        canvas.dispose();
+      }
 
-        //canvas = new fabric.Canvas('myCanvas', options);
+      // 새로운 캔버스를 생성합니다.
+      canvas = new fabric.Canvas('myCanvas', options);
 
-        fabric.Image.fromURL(e.target.result, function (img) {
-          if (imgObj) {
-            canvas.dispose();
-          }
+      fabric.Image.fromURL(e.target.result, function (img) {
 
+        originalWidth = img.width;
+        originalHeight = img.height;
 
-          originalWidth = img.width;
-          originalHeight = img.height;
-
-          originalFile = new fabric.Image(e.target.result)
-          // 새로운 캔버스를 생성합니다.
-          canvas = new fabric.Canvas('myCanvas', options);
-
-          canvasRef.current.style.display = 'block';
-          resetButtonRef.current.style.display = 'block'
-          buttonRef.current.style.display = 'none'
-          buttonRef2.current.style.display = ''
-
-          // 이미지 설정
-          img.set({
-            left: 0,
-            top: 0,
-            angle: 0,
-            opacity: 0.85,
-            selectable: false, // 선택 불가능하게 설정
-          });
+        originalFile = e.target.result
 
 
+        canvasRef.current.style.display = 'block';
+        canvasRef.current.style.opacity = '100';
+        resetButtonRef.current.style.display = 'block'
+        buttonRef.current.style.display = 'none'
+        buttonRef2.current.style.display = ''
 
-
-
-          // 현재 뷰포트 크기 가져오기
-          const viewportWidth = window.innerWidth;
-          const viewportHeight = window.innerHeight;
-
-          // 원하는 캔버스 크기 계산 (예: 뷰포트의 80% 크기로 설정)
-          const maxCanvasWidth = viewportWidth * 0.8;
-          const maxCanvasHeight = viewportHeight * 0.8;
-
-          // 이미지의 원본 크기와 비교하여 스케일 계산
-          const scaleX = maxCanvasWidth / originalWidth;
-          const scaleY = maxCanvasHeight / originalHeight;
-
-          // 이미지가 뷰포트에 맞게끔 가장 작은 스케일 값 사용
-          scaleFactor = Math.min(scaleX, scaleY);
-
-          img.scale(scaleFactor); // 스케일링 적용
-
-
-
-
-
-
-          imgObj = img;
-          canvas.add(img);
-          //canvas.add(el);
-
-          // 캔버스의 크기를 이미지의 크기에 맞게 조정
-          canvas.setWidth(originalWidth * scaleFactor);
-          canvas.setHeight(originalHeight * scaleFactor);
-
-          console.log('original : ' + originalFile.width + ' copy : ' + img.width)
-
-          // 이미지 캔버스 중앙에 배치
-          canvas.centerObject(img);
-          canvas.renderAll();
+        // 이미지 설정
+        img.set({
+          left: 0,
+          top: 0,
+          angle: 0,
+          opacity: 1,
+          selectable: false
         });
 
-      }
-      if (file) {
-        reader.readAsDataURL(file);
-      }
+
+
+        // 현재 뷰포트 크기 가져오기
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        // 원하는 캔버스 크기 계산 (예: 뷰포트의 80% 크기로 설정)
+        const maxCanvasWidth = viewportWidth * 0.8;
+        const maxCanvasHeight = viewportHeight * 0.8;
+
+        // 이미지의 원본 크기와 비교하여 스케일 계산
+        const scaleX = maxCanvasWidth / originalWidth;
+        const scaleY = maxCanvasHeight / originalHeight;
+
+        // 이미지가 뷰포트에 맞게끔 가장 작은 스케일 값 사용
+        scaleFactor = Math.min(scaleX, scaleY);
+
+        img.scale(scaleFactor); // 스케일링 적용
+
+        // imgObj가 제대로 설정되었는지 확인
+
+        imgObj = img;
+        canvas.add(img);
+        //canvas.add(el);
+
+        // 캔버스의 크기를 이미지의 크기에 맞게 조정
+        canvas.setWidth(originalWidth * scaleFactor);
+        canvas.setHeight(originalHeight * scaleFactor);
+
+
+        // 이미지 캔버스 중앙에 배치
+        canvas.centerObject(img);
+        canvas.renderAll();        
+
+        imgObj.on('mousedown', closeFilterMenu);
+
+      });
+
+      event.target.value = ''; 
+
     }
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  }
+  
 
-    document.getElementById('imageInput').addEventListener('change', eventFunc);
-
+  useEffect(() => {
+    applyFilterBackend();
+    document.getElementById('canvas-area').addEventListener('click', closeFilterMenu)
     return () => {
-      document.getElementById('imageInput').removeEventListener('change', eventFunc)
+      document.getElementById('canvas-area').removeEventListener('click', closeFilterMenu)
     };
   }, []);
+  
+  function closeFilterMenu() {
+    isNavbarVisible.current = false
+    navbarRef.current.classList.add('hidden-navbar');
+    navbarRef.current.classList.remove('visible-navbar');
+  }
 
+
+
+  const handleMouseDown = (options) => {
+    if (options.target && options.target !== imgObj) {
+      return;
+    }
+
+    const pointer = canvas.getPointer(options.e);
+    isDrawing = true;
+
+    cropRect = new fabric.Rect({
+      left: pointer.x,
+      top: pointer.y,
+      width: 0,
+      height: 0,
+      fill: 'rgba(0, 0, 0, 0.3)',
+      hasBorders: true,
+      hasControls: true,
+      selectable: false,
+      lockRotation: true,
+    });
+
+    canvas.add(cropRect);
+  };
+
+  const handleMouseMove = (options) => {
+    if (!isDrawing || !cropRect) return;
+
+    const pointer = canvas.getPointer(options.e);
+
+    cropRect.set({
+      width: Math.abs(pointer.x - cropRect.left),
+      height: Math.abs(pointer.y - cropRect.top),
+    });
+
+    if (pointer.x < cropRect.left) {
+      cropRect.set({ left: pointer.x });
+    }
+    if (pointer.y < cropRect.top) {
+      cropRect.set({ top: pointer.y });
+    }
+
+    canvas.renderAll();
+  };
+
+  const handleMouseUp = () => {
+    isDrawing = false;
+    cropRect.setCoords();
+    cropImage()
+  };
+
+  const cropImage = () => {
+
+    if (cropRect && imgObj) {
+      const scaleX = imgObj.scaleX || 1;
+      const scaleY = imgObj.scaleY || 1;
+
+      const { left, top, width, height } = cropRect.getBoundingRect();
+      const scaledLeft = left / scaleX;
+      const scaledTop = top / scaleY;
+      const scaledWidth = width / scaleX;
+      const scaledHeight = height / scaleY;
+
+      const croppedImg = new fabric.Image(imgObj.getElement(), {
+        left: 0,
+        top: 0,
+        width: scaledWidth,
+        height: scaledHeight,
+        cropX: scaledLeft,
+        cropY: scaledTop,
+        scaleX: scaleX,
+        scaleY: scaleY,
+      });
+
+      canvas.clear();
+      canvas.add(croppedImg);
+      canvas.setWidth(scaledWidth * scaleX);
+      canvas.setHeight(scaledHeight * scaleY);
+      canvas.centerObject(croppedImg);
+      canvas.renderAll();
+    }
+  };
+
+
+  function onCrop (e) {
+    e.preventDefault()
+
+    isNavbarVisible.current = false
+    navbarRef.current.classList.add('hidden-navbar');
+    navbarRef.current.classList.remove('visible-navbar');
+    canvas.on('mouse:down', handleMouseDown);
+    canvas.on('mouse:move', handleMouseMove);
+    canvas.on('mouse:up', handleMouseUp);
+  }
 
   // ##########################################
 
-  function filterTest() {
-    if (imgObj) {
-      const obj = canvas.getActiveObject()
-      console.log('?? : ' + obj == imgObj)
-    }
-  }
+
 
   const toggleNavbar = (e) => {
-    e.preventDefault()
+    if (e) {
+      e.preventDefault()
+    }
 
     isNavbarVisible.current = !isNavbarVisible.current;
     if (navbarRef.current) {
@@ -150,12 +248,8 @@ function App() {
 
 
   function applyFilterBackend() {
-    console.log('applied filter backend')
     fabric.filterBackend = new fabric.Canvas2dFilterBackend()
   }
-
-
-
 
 
   function setGrayScale(style = 'average') {
@@ -252,8 +346,6 @@ function App() {
 
   function setBrightness(brightness = 0.05) {
 
-    console.log('brightness : ' + brightness)
-
     if (imgObj) {
       // 기존 밝기 필터 제거
       imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Brightness');
@@ -268,10 +360,40 @@ function App() {
     }
   }
 
+
+  
   function reset() {
-    imgObj.filters = []
-    imgObj.applyFilters();
-    canvas.renderAll();
+    //imgObj.filters = []
+    //imgObj.applyFilters();
+    //canvas.renderAll();
+
+    if (canvas) {
+      canvas.dispose()
+      canvas = new fabric.Canvas('myCanvas', options);
+
+
+      fabric.Image.fromURL(originalFile, function (img) {
+
+        img.set({
+          left: 0,
+          top: 0,
+          angle: 0,
+          opacity: 1,
+          selectable: false
+        });
+        img.scale(scaleFactor); // 스케일링 적용
+
+        imgObj = img;
+        canvas.add(img)
+        canvas.setWidth(originalWidth * scaleFactor)
+        canvas.setHeight(originalHeight * scaleFactor)
+        canvas.centerObject(img)
+        canvas.renderAll()
+      })
+
+      //originalWidth * scaleFactor
+    }
+
   }
 
   function saveAsJPG(e) {
@@ -309,7 +431,7 @@ function App() {
       <div className="navbar">
         <div className="logo">Imgdit.com</div>
         <div className="menu">
-          <input type="file" id="imageInput" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} />
+          <input type="file" id="imageInput" accept="image/*" ref={fileInputRef} onChange={eventFunc} style={{ display: 'none' }} />
         </div>
 
         <div className="save-container" style={{ marginLeft: 'auto', marginRight: '20px' }}>
@@ -322,7 +444,7 @@ function App() {
 
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
           <div className="container-fluid">
-            <a className="navbar-brand" href="#" style={{fontSize : '20px'}}>Editor</a>
+            <a className="navbar-brand" href="#" style={{ fontSize: '20px' }}>Editor</a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon"></span>
             </button>
@@ -333,6 +455,12 @@ function App() {
                   <a href='' className="nav-link" onClick={toggleNavbar}>Filter</a>
                 </li>
 
+
+                <li className="nav-item">
+                  <a href='' className="nav-link" onClick={onCrop}>Crop</a>
+                </li>
+
+
               </ul>
             </div>
           </div>
@@ -341,7 +469,7 @@ function App() {
 
         <nav className={"navbar navbar-expand-lg navbar-dark bg-dark hidden-navbar"} ref={navbarRef}>
           <div className="container-fluid">
-            
+
             <div className="collapse navbar-collapse" id="navbarNav">
               <ul className="navbar-nav">
 
@@ -425,9 +553,9 @@ function App() {
         </nav>
 
 
-        <div className="canvas-area" style={{ backgroundColor: 'rgb(221 221 221)' }}>
+        <div className="canvas-area" style={{ backgroundColor: 'rgb(221 221 221)' }} id="canvas-area">
           <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => { fileInputRef.current.click() }} ref={buttonRef}>Select Image</button>
-          <canvas id="myCanvas" ref={canvasRef} style={{ display: 'none' }}></canvas>
+          <canvas id="myCanvas" ref={canvasRef} style={{ width: '1px', height: '1px', opacity: 0 }}></canvas>
         </div>
 
         <div className="button-container" ref={resetButtonRef} style={{ display: 'none' }}>

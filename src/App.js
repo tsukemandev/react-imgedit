@@ -9,14 +9,16 @@ function App() {
   const canvasRef = useRef(null);
   const buttonRef = useRef(null)
   const buttonRef2 = useRef(null)
+  const buttonRef3 = useRef(null)
+
   const resetButtonRef = useRef(null)
+  const cropCutButtonRef = useRef(null)
 
   const isNavbarVisible = useRef(false); // useState 대신 useRef로 관리
   const navbarRef = useRef(null);
 
 
   var isDrawing = false;
-  var cropRect;
   var originalFile;
   var imgObj
   var canvas
@@ -24,6 +26,9 @@ function App() {
 
   var originalWidth
   var originalHeight
+
+
+  var croppedWidth, croppedHeight, croppedImg, cropRect;
 
   //const imgEl = useRef(null)
   const options = {
@@ -37,6 +42,8 @@ function App() {
   const eventFunc = function (event) {
     const file = event.target.files[0];
     const reader = new FileReader();
+
+
     reader.onload = function (e) {
 
       if (canvas) {
@@ -57,6 +64,7 @@ function App() {
         canvasRef.current.style.display = 'block';
         canvasRef.current.style.opacity = '100';
         resetButtonRef.current.style.display = 'block'
+        cropCutButtonRef.current.style.display = 'none'
         buttonRef.current.style.display = 'none'
         buttonRef2.current.style.display = ''
 
@@ -101,20 +109,20 @@ function App() {
 
         // 이미지 캔버스 중앙에 배치
         canvas.centerObject(img);
-        canvas.renderAll();        
+        canvas.renderAll();
 
         imgObj.on('mousedown', closeFilterMenu);
 
       });
 
-      event.target.value = ''; 
+      event.target.value = '';
 
     }
     if (file) {
       reader.readAsDataURL(file);
     }
   }
-  
+
 
   useEffect(() => {
     applyFilterBackend();
@@ -123,7 +131,7 @@ function App() {
       document.getElementById('canvas-area').removeEventListener('click', closeFilterMenu)
     };
   }, []);
-  
+
   function closeFilterMenu() {
     isNavbarVisible.current = false
     navbarRef.current.classList.add('hidden-navbar');
@@ -132,56 +140,11 @@ function App() {
 
 
 
-  const handleMouseDown = (options) => {
-    if (options.target && options.target !== imgObj) {
-      return;
+
+  const cropImage = (e) => {
+    if (e) {
+      e.preventDefault()
     }
-
-    const pointer = canvas.getPointer(options.e);
-    isDrawing = true;
-
-    cropRect = new fabric.Rect({
-      left: pointer.x,
-      top: pointer.y,
-      width: 0,
-      height: 0,
-      fill: 'rgba(0, 0, 0, 0.3)',
-      hasBorders: true,
-      hasControls: true,
-      selectable: false,
-      lockRotation: true,
-    });
-
-    canvas.add(cropRect);
-  };
-
-  const handleMouseMove = (options) => {
-    if (!isDrawing || !cropRect) return;
-
-    const pointer = canvas.getPointer(options.e);
-
-    cropRect.set({
-      width: Math.abs(pointer.x - cropRect.left),
-      height: Math.abs(pointer.y - cropRect.top),
-    });
-
-    if (pointer.x < cropRect.left) {
-      cropRect.set({ left: pointer.x });
-    }
-    if (pointer.y < cropRect.top) {
-      cropRect.set({ top: pointer.y });
-    }
-
-    canvas.renderAll();
-  };
-
-  const handleMouseUp = () => {
-    isDrawing = false;
-    cropRect.setCoords();
-    cropImage()
-  };
-
-  const cropImage = () => {
 
     if (cropRect && imgObj) {
       const scaleX = imgObj.scaleX || 1;
@@ -193,7 +156,7 @@ function App() {
       const scaledWidth = width / scaleX;
       const scaledHeight = height / scaleY;
 
-      const croppedImg = new fabric.Image(imgObj.getElement(), {
+      croppedImg = new fabric.Image(imgObj.getElement(), {
         left: 0,
         top: 0,
         width: scaledWidth,
@@ -202,32 +165,77 @@ function App() {
         cropY: scaledTop,
         scaleX: scaleX,
         scaleY: scaleY,
+        selectable: false,
       });
+
+      croppedWidth = scaledWidth * scaleX
+      croppedHeight = scaledHeight * scaleY
+
+      imgObj = croppedImg
 
       canvas.clear();
       canvas.add(croppedImg);
-      canvas.setWidth(scaledWidth * scaleX);
-      canvas.setHeight(scaledHeight * scaleY);
+      canvas.setWidth(croppedWidth);
+      canvas.setHeight(croppedHeight);
       canvas.centerObject(croppedImg);
       canvas.renderAll();
+
+      resetButtonRef.current.style.display = 'block'
+      cropCutButtonRef.current.style.display = 'none'
     }
   };
 
-
-  function onCrop (e) {
+  function onCrop(e) {
     e.preventDefault()
 
     isNavbarVisible.current = false
     navbarRef.current.classList.add('hidden-navbar');
     navbarRef.current.classList.remove('visible-navbar');
-    canvas.on('mouse:down', handleMouseDown);
-    canvas.on('mouse:move', handleMouseMove);
-    canvas.on('mouse:up', handleMouseUp);
+
+
+    if (!cropRect && canvas) {
+      cropRect = new fabric.Rect({
+        left: 10,
+        top: 10,
+        width: 100,
+        height: 100,
+        fill: 'transparent',
+        stroke: 'red',
+        strokeWidth: 2,
+        selectable: true, // 객체가 선택 가능하게 설정
+        hasControls: true, // 크기 조절 가능한 핸들 표시
+        lockRotation: true, // 회전 잠금
+        lockScalingFlip: true, // 플립 잠금
+        
+        
+  
+        // 조절 핸들 스타일 설정
+        cornerSize: 12, // 조절 핸들의 크기
+        cornerColor: 'blue', // 조절 핸들의 색상
+        cornerStyle: 'circle', // 조절 핸들의 모양 (rect, circle)
+        borderColor: 'red', // 조절 핸들의 테두리 색상
+        cornerStrokeColor: 'white', // 조절 핸들의 테두리 색상
+        transparentCorners: false, // 조절 핸들 불투명하게 설정
+      });
+
+      cropRect.setControlsVisibility({ mtr: false });
+  
+      canvas.add(cropRect);
+      canvas.setActiveObject(cropRect);
+      canvas.requestRenderAll(); // 변경 사항을 캔버스에 즉시 반영
+      
+      resetButtonRef.current.style.display = 'none'
+      cropCutButtonRef.current.style.display = 'block'
+    } else {
+      alert('Please! Reset Button')
+    }
+
   }
 
+
+
+
   // ##########################################
-
-
 
   const toggleNavbar = (e) => {
     if (e) {
@@ -361,7 +369,7 @@ function App() {
   }
 
 
-  
+
   function reset() {
     //imgObj.filters = []
     //imgObj.applyFilters();
@@ -371,8 +379,12 @@ function App() {
       canvas.dispose()
       canvas = new fabric.Canvas('myCanvas', options);
 
-
       fabric.Image.fromURL(originalFile, function (img) {
+
+        croppedImg = '' //crop 관련 데이터가 저장된 것도 모조리 초기화 시킨다.
+        croppedWidth = ''
+        croppedHeight = ''
+        cropRect = ''
 
         img.set({
           left: 0,
@@ -381,6 +393,7 @@ function App() {
           opacity: 1,
           selectable: false
         });
+
         img.scale(scaleFactor); // 스케일링 적용
 
         imgObj = img;
@@ -399,11 +412,69 @@ function App() {
   function saveAsJPG(e) {
     e.preventDefault();
 
+    if (croppedImg) {
+
+      //imgObj.scale(1)
+      canvas.clear()
+      canvas.add(croppedImg)
+      canvas.setWidth(croppedWidth)
+      canvas.setHeight(croppedHeight)
+      canvas.centerObject(croppedImg)
+      canvas.renderAll()
+
+
+
+      // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
+      const dataURL = canvas.toDataURL({
+        format: 'png',
+        quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
+      });
+
+      // 링크 요소를 생성하여 다운로드를 트리거합니다.
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'imgdit-image.png'; // 저장할 파일 이름
+      link.click(); // 다운로드 실행
+
+    } else {
+
+        imgObj.scale(1)
+        canvas.setWidth(imgObj.width)
+        canvas.setHeight(imgObj.height)
+        canvas.centerObject(imgObj)
+        canvas.renderAll()
+  
+        // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
+        const dataURL = canvas.toDataURL({
+          format: 'png',
+          quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
+        });
+  
+        // 링크 요소를 생성하여 다운로드를 트리거합니다.
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'imgdit-image.png'; // 저장할 파일 이름
+        link.click(); // 다운로드 실행
+  
+  
+        imgObj.scale(scaleFactor)
+        canvas.setWidth(imgObj.width * scaleFactor)
+        canvas.setHeight(imgObj.height * scaleFactor)
+    }
+  }
+
+
+
+  function saveAsJPG1(e) {
+    e.preventDefault();
+
     if (imgObj) {
 
       imgObj.scale(1)
-      canvas.setWidth(originalWidth)
-      canvas.setHeight(originalHeight)
+      canvas.setWidth(imgObj.width)
+      canvas.setHeight(imgObj.height)
+      canvas.centerObject(imgObj)
+      canvas.renderAll()
 
       // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
       const dataURL = canvas.toDataURL({
@@ -419,8 +490,8 @@ function App() {
 
 
       imgObj.scale(scaleFactor)
-      canvas.setWidth(originalWidth * scaleFactor)
-      canvas.setHeight(originalHeight * scaleFactor)
+      canvas.setWidth(imgObj.width * scaleFactor)
+      canvas.setHeight(imgObj.height * scaleFactor)
     }
   }
 
@@ -459,7 +530,6 @@ function App() {
                 <li className="nav-item">
                   <a href='' className="nav-link" onClick={onCrop}>Crop</a>
                 </li>
-
 
               </ul>
             </div>
@@ -562,6 +632,10 @@ function App() {
           <button type="button" className="btn btn-primary btn-lg btn-block sticky-button" onClick={() => { fileInputRef.current.click() }}
             ref={buttonRef2} style={{ marginRight: '20px', display: 'none' }}>Select Image</button>
           <button className="btn btn-secondary btn-lg btn-block sticky-button" onClick={reset}>Reset</button>
+        </div>
+
+        <div className="button-container" ref={cropCutButtonRef} style={{ display: 'none' }}>
+          <button type="button" className="btn btn-success btn-lg btn-block sticky-button" ref={buttonRef3} onClick={cropImage}>Cut</button>
         </div>
 
       </div>

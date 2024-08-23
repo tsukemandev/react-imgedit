@@ -132,7 +132,7 @@ function App() {
     };
   }, []);
 
-  function closeFilterMenu() {
+  function closeFilterMenu(e) {
     isNavbarVisible.current = false
     navbarRef.current.classList.add('hidden-navbar');
     navbarRef.current.classList.remove('visible-navbar');
@@ -140,6 +140,52 @@ function App() {
 
 
 
+  function cropDragAndDrop(croppingRectWidth, croppingRectHeight) {
+    // 고정된 이미지 추가 (selectable: true)
+    fabric.Image.fromURL(originalFile, function (img) {
+      img.set({
+        left: 0,
+        top: 0,
+        selectable: false,
+        evented: false // 선택은 가능하지만 이벤트는 처리하지 않음
+      });
+
+      img.scale(scaleFactor); // 스케일링 적용
+      canvas.add(img);
+
+      // 이미지를 덮는 반투명 사각형 만들기
+      let overlayRect = new fabric.Rect({
+        left: 0,
+        top: 0,
+        //width: img.width,
+        //height: img.height,
+        width: canvas.getWidth(),
+        height: canvas.getHeight(),
+        fill: 'rgba(0, 0, 0, 0.7)',
+        selectable: false, // 사각형은 선택 불가
+        evented: false
+      });
+      canvas.add(overlayRect);
+
+    
+      canvas.add(imgObj)
+
+      //canvas.add(imgObj)
+      // 클리핑 마스크를 설정하여 사각형 안의 내용만 보이게 하기
+      imgObj.clipPath = new fabric.Rect({
+        left: cropRect.left,
+        top: cropRect.top,
+        width: croppingRectWidth,
+        height: croppingRectHeight,
+
+        absolutePositioned: true
+      })
+
+      // 이미지가 가장 아래에 위치하도록 이동
+      //canvas.sendToBack(img);
+      canvas.renderAll();
+    });
+  }
 
   const cropImage = (e) => {
     if (e) {
@@ -185,6 +231,7 @@ function App() {
     }
   };
 
+
   function onCrop(e) {
     e.preventDefault()
 
@@ -194,21 +241,23 @@ function App() {
 
 
     if (!cropRect && canvas) {
+
       cropRect = new fabric.Rect({
-        left: 10,
-        top: 10,
-        width: 100,
-        height: 100,
+        left: canvas.getWidth() / 2,
+        top: canvas.getHeight() / 2,
+        width: 50,
+        height: 50,
+
         fill: 'transparent',
-        stroke: 'red',
-        strokeWidth: 2,
+        //stroke: 'red',
+        //strokeWidth: 2,
         selectable: true, // 객체가 선택 가능하게 설정
         hasControls: true, // 크기 조절 가능한 핸들 표시
         lockRotation: true, // 회전 잠금
         lockScalingFlip: true, // 플립 잠금
-        
-        
-  
+        strokeUniform: true,
+
+
         // 조절 핸들 스타일 설정
         cornerSize: 12, // 조절 핸들의 크기
         cornerColor: 'blue', // 조절 핸들의 색상
@@ -216,18 +265,30 @@ function App() {
         borderColor: 'red', // 조절 핸들의 테두리 색상
         cornerStrokeColor: 'white', // 조절 핸들의 테두리 색상
         transparentCorners: false, // 조절 핸들 불투명하게 설정
+
+        absolutePositioned: true
       });
 
+
       cropRect.setControlsVisibility({ mtr: false });
-  
+
       canvas.add(cropRect);
       canvas.setActiveObject(cropRect);
+
+      cropDragAndDrop(cropRect.width * cropRect.scaleX, cropRect.height * cropRect.scaleY)
       canvas.requestRenderAll(); // 변경 사항을 캔버스에 즉시 반영
-      
+
+
+      // scaling 이벤트 감지
+      cropRect.on('modified', function(event) {
+        console.log('Scaling completed.');
+        cropDragAndDrop(cropRect.width * cropRect.scaleX, cropRect.height * cropRect.scaleY)
+      });
+
       resetButtonRef.current.style.display = 'none'
       cropCutButtonRef.current.style.display = 'block'
     } else {
-      alert('Please! Reset Button')
+      alert('이미지를 첨부해주세요.')
     }
 
   }
@@ -438,28 +499,28 @@ function App() {
 
     } else {
 
-        imgObj.scale(1)
-        canvas.setWidth(imgObj.width)
-        canvas.setHeight(imgObj.height)
-        canvas.centerObject(imgObj)
-        canvas.renderAll()
-  
-        // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
-        const dataURL = canvas.toDataURL({
-          format: 'png',
-          quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
-        });
-  
-        // 링크 요소를 생성하여 다운로드를 트리거합니다.
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = 'imgdit-image.png'; // 저장할 파일 이름
-        link.click(); // 다운로드 실행
-  
-  
-        imgObj.scale(scaleFactor)
-        canvas.setWidth(imgObj.width * scaleFactor)
-        canvas.setHeight(imgObj.height * scaleFactor)
+      imgObj.scale(1)
+      canvas.setWidth(imgObj.width)
+      canvas.setHeight(imgObj.height)
+      canvas.centerObject(imgObj)
+      canvas.renderAll()
+
+      // 캔버스 내용을 JPG 형식의 데이터 URL로 변환합니다.
+      const dataURL = canvas.toDataURL({
+        format: 'png',
+        quality: 1, // 이미지 품질 (0에서 1 사이, 1이 최고 품질)
+      });
+
+      // 링크 요소를 생성하여 다운로드를 트리거합니다.
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'imgdit-image.png'; // 저장할 파일 이름
+      link.click(); // 다운로드 실행
+
+
+      imgObj.scale(scaleFactor)
+      canvas.setWidth(imgObj.width * scaleFactor)
+      canvas.setHeight(imgObj.height * scaleFactor)
     }
   }
 
@@ -515,7 +576,7 @@ function App() {
 
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
           <div className="container-fluid">
-            <a className="navbar-brand" href="#" style={{ fontSize: '20px' }}>Editor</a>
+            <a className="navbar-brand" href="" style={{ fontSize: '20px' }} onClick={(e) => { e.preventDefault(); closeFilterMenu() }}>Editor</a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon"></span>
             </button>
@@ -530,6 +591,11 @@ function App() {
                 <li className="nav-item">
                   <a href='' className="nav-link" onClick={onCrop}>Crop</a>
                 </li>
+
+                <li className="nav-item">
+                  <a href='' className="nav-link">Resize</a>
+                </li>
+
 
               </ul>
             </div>

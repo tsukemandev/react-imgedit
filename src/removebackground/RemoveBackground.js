@@ -262,15 +262,47 @@ function RemoveBackground() {
 
     return (
         <div>
+
+            {/* 페이지 제목 */}
+            <title>AI-Powered Background Remover - Imgdit</title>
+
+            {/* 페이지 설명 */}
+            <meta name="description" content="Remove backgrounds from your images instantly with Imgdit's AI-powered background remover. Perfect for product photos, profile pictures, and more." />
+
+            {/* 키워드 */}
+            <meta name="keywords" content="background remover, AI background removal, remove background, image editing, online editor, imgdit" />
+
+            {/* Open Graph 메타 태그 (소셜 미디어에서 공유될 때) */}
+            <meta property="og:title" content="AI-Powered Background Remover - Imgdit" />
+            <meta property="og:description" content="Use Imgdit's advanced AI to remove backgrounds from images with just one click. Ideal for professionals and creatives alike." />
+            <meta property="og:image" content="https://imgdit.com/images/icon.png" /> {/* 실제 이미지 URL로 교체 */}
+            <meta property="og:url" content="https://imgdit.com/background-remover" />
+            <meta property="og:type" content="website" />
+
+            {/* 트위터 카드 메타 태그 */}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" content="AI-Powered Background Remover - Imgdit" />
+            <meta name="twitter:description" content="Instantly remove backgrounds from your images using Imgdit's AI-powered tools. Perfect for professional-grade results." />
+            <meta name="twitter:image" content="https://imgdit.com/images/icon.png" /> {/* 실제 이미지 URL로 교체 */}
+
+            {/* Canonical URL */}
+            <link rel="canonical" href="https://imgdit.com/background-remover" />
+
+
             <div className="navbar">
-                <div className="logo">Imgdit.com</div>
+                <div className="logo"><a href='/' style={{color : 'white', textDecoration : 'none'}}>Imgdit.com</a></div>
                 <div className="menu">
                     <input type="file" id="imageInput" accept="image/*" style={{ display: 'none' }} onChange={eventFunc} ref={fileInputRef} />
                 </div>
 
                 <div className="save-container" style={{ marginLeft: 'auto', marginRight: '20px' }}>
-                    <a href="" style={{ color: 'inherit' }} onClick={saveAsJPG}><i className="fa fa-save" style={{ fontSize: '24px' }}></i></a>
+                    <a href="" style={{ color: 'inherit' }} onClick={saveAsJPG}>
+                        <i className="fa fa-save" style={{ fontSize: '24px' }}></i>
+                        <span style={{paddingLeft : '10px', display: 'inline-block', fontSize : '20px', lineHeight: '30px'}}>save</span>
+                    </a>
+                    
                 </div>
+                
             </div>
             <div className="editor-container">
                 <nav className="navbar navbar-expand-lg navbar-dark bg-dark">

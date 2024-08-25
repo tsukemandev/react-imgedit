@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet';
 
 function Editor() {
   const fileInputRef = useRef(null);
@@ -595,14 +596,46 @@ function Editor() {
   return (
     <div>
 
+      <Helmet>
+        {/* 페이지 제목 */}
+        <title>Advanced Image Editing - Filters and Crop Tools - Imgdit</title>
+
+        {/* 페이지 설명 */}
+        <meta name="description" content="Edit your images with advanced tools at Imgdit. Apply filters, crop your photos, and enhance your images effortlessly." />
+
+        {/* 키워드 */}
+        <meta name="keywords" content="image editing, filters, crop tool, online editor, photo enhancement, imgdit" />
+
+        {/* Open Graph 메타 태그 (소셜 미디어에서 공유될 때) */}
+        <meta property="og:title" content="Advanced Image Editing - Filters and Crop Tools - Imgdit" />
+        <meta property="og:description" content="Use Imgdit's advanced editor to apply filters, crop images, and enhance your photos. Make your images stand out!" />
+        <meta property="og:image" content="https://imgdit.com/images/icon.png" /> {/* 실제 이미지 URL로 교체 */}
+        <meta property="og:url" content="https://imgdit.com/editor" />
+        <meta property="og:type" content="website" />
+
+        {/* 트위터 카드 메타 태그 */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Advanced Image Editing - Filters and Crop Tools - Imgdit" />
+        <meta name="twitter:description" content="Apply stunning filters and crop your images with Imgdit's powerful online editing tools. Enhance your photos today!" />
+        <meta name="twitter:image" content="https://imgdit.com/images/icon.png" /> {/* 실제 이미지 URL로 교체 */}
+
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://imgdit.com/editor" />
+      </Helmet>
+
+
       <div className="navbar">
-        <div className="logo">Imgdit.com</div>
+        <div className="logo"><a href='/' style={{color : 'white', textDecoration : 'none'}}>Imgdit.com</a></div>
         <div className="menu">
           <input type="file" id="imageInput" accept="image/*" ref={fileInputRef} onChange={eventFunc} style={{ display: 'none' }} />
         </div>
 
         <div className="save-container" style={{ marginLeft: 'auto', marginRight: '20px' }}>
-          <a href="" style={{ color: 'inherit' }} onClick={saveAsJPG}><i className="fa fa-save" style={{ fontSize: '24px' }}></i></a>
+          <a href="" style={{ color: 'inherit' }} onClick={saveAsJPG}>
+            <i className="fa fa-save" style={{ fontSize: '24px' }}></i>
+            <span style={{paddingLeft : '10px', display: 'inline-block', fontSize : '20px', lineHeight: '30px'}}>save</span>
+            
+          </a>
         </div>
       </div>
 
@@ -627,7 +660,7 @@ function Editor() {
         </nav>
 
 
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark" style={{paddingTop: '0', paddingBottom: '0'}}>
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark" style={{ paddingTop: '0', paddingBottom: '0' }}>
           <div className="container-fluid">
 
             <div className="collapse navbar-collapse" id="navbarNav">

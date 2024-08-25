@@ -4,6 +4,8 @@ import './Editor.css';
 import React, { useEffect, useRef, useState } from 'react';
 import { fabric } from 'fabric';
 
+import { Link } from 'react-router-dom'
+
 function Editor() {
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
@@ -84,8 +86,14 @@ function Editor() {
         const viewportHeight = window.innerHeight;
 
         // 원하는 캔버스 크기 계산 (예: 뷰포트의 80% 크기로 설정)
-        const maxCanvasWidth = viewportWidth * 0.8;
-        const maxCanvasHeight = viewportHeight * 0.8;
+        let maxCanvasWidth = viewportWidth * 0.6;
+        let maxCanvasHeight = viewportHeight * 0.6;
+
+        if (viewportWidth < 900) {
+          maxCanvasWidth = viewportWidth * 0.8;
+          maxCanvasHeight = viewportHeight * 0.6;
+        }
+
 
         // 이미지의 원본 크기와 비교하여 스케일 계산
         const scaleX = maxCanvasWidth / originalWidth;
@@ -126,9 +134,12 @@ function Editor() {
 
   useEffect(() => {
     applyFilterBackend();
-    document.getElementById('canvas-area').addEventListener('click', closeFilterMenu)
+    const element = document.getElementById('canvas-area');
+    element.addEventListener('click', closeFilterMenu)
     return () => {
-      document.getElementById('canvas-area').removeEventListener('click', closeFilterMenu)
+      if (element) {
+        element.removeEventListener('click', closeFilterMenu)
+      }
     };
   }, []);
 
@@ -167,7 +178,7 @@ function Editor() {
       });
       canvas.add(overlayRect);
 
-    
+
       canvas.add(imgObj)
 
       //canvas.add(imgObj)
@@ -280,7 +291,7 @@ function Editor() {
 
 
       // scaling 이벤트 감지
-      cropRect.on('modified', function(event) {
+      cropRect.on('modified', function (event) {
         console.log('Scaling completed.');
         cropDragAndDrop(cropRect.width * cropRect.scaleX, cropRect.height * cropRect.scaleY)
       });
@@ -288,7 +299,7 @@ function Editor() {
       resetButtonRef.current.style.display = 'none'
       cropCutButtonRef.current.style.display = 'block'
     } else {
-      alert('이미지를 첨부해주세요.')
+      alert('Please! enter a Image')
     }
 
   }
@@ -427,6 +438,30 @@ function Editor() {
       imgObj.applyFilters();
       canvas.renderAll();
     }
+  }
+
+  function setEmboss() {
+
+    if (imgObj) {
+      const filter = new fabric.Image.filters.Convolute({
+        matrix: [1, 1, 1,
+          1, 0.7, -1,
+          -1, -1, -1]
+      });
+
+      const findObj = imgObj.filters.find(filter => filter.type === 'Convolute')
+      if (findObj) {
+        imgObj.filters = imgObj.filters.filter(filter => filter.type !== 'Convolute')
+        imgObj.applyFilters();
+        canvas.renderAll()
+        return
+      }
+
+      imgObj.filters.push(filter)
+      imgObj.applyFilters()
+      canvas.renderAll()
+    }
+
   }
 
 
@@ -576,7 +611,7 @@ function Editor() {
 
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
           <div className="container-fluid">
-            <a className="navbar-brand" href="" style={{ fontSize: '20px' }} onClick={(e) => { e.preventDefault(); closeFilterMenu() }}>Editor</a>
+            <a className="navbar-brand" href="" style={{ fontSize: '20px' }}>Editor</a>
             <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon"></span>
             </button>
@@ -584,23 +619,35 @@ function Editor() {
               <ul className="navbar-nav">
 
                 <li className="nav-item">
+                  <Link to="/background-remover" className="nav-link">Background Remover</Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+
+
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark" style={{paddingTop: '0', paddingBottom: '0'}}>
+          <div className="container-fluid">
+
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav">
+
+                <li className="nav-item">
                   <a href='' className="nav-link" onClick={toggleNavbar}>Filter</a>
                 </li>
-
 
                 <li className="nav-item">
                   <a href='' className="nav-link" onClick={onCrop}>Crop</a>
                 </li>
 
-                <li className="nav-item">
-                  <a href='' className="nav-link">Resize</a>
-                </li>
 
 
               </ul>
             </div>
           </div>
         </nav>
+
 
 
         <nav className={"navbar navbar-expand-lg navbar-dark bg-dark hidden-navbar"} ref={navbarRef}>
@@ -681,7 +728,7 @@ function Editor() {
                   <a className="nav-link" onClick={setInvert}>Invert</a>
                 </li>
                 <li className="nav-item">
-                  <a className="nav-link disabled" tabIndex="-1" aria-disabled="true">Disabled</a>
+                  <a className="nav-link" onClick={setEmboss}>Emboss</a>
                 </li>
               </ul>
             </div>
@@ -689,7 +736,7 @@ function Editor() {
         </nav>
 
 
-        <div className="canvas-area" style={{ backgroundColor: 'rgb(221 221 221)' }} id="canvas-area">
+        <div className="canvas-area" id="canvas-area">
           <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => { fileInputRef.current.click() }} ref={buttonRef}>Select Image</button>
           <canvas id="myCanvas" ref={canvasRef} style={{ width: '1px', height: '1px', opacity: 0 }}></canvas>
         </div>

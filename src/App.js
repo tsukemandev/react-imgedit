@@ -2,15 +2,27 @@
 import './App.css';
 
 import React from 'react';
-import Test from './Test';
 import Editor from './editor/Editor';
 import RemoveBackground from './removebackground/RemoveBackground';
+import Page404 from './404/Page404';
+import Home from './home/Home';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 
 function App() {
-  
+
   return (
-    <RemoveBackground></RemoveBackground>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} /> 
+        <Route path="/editor" element={<Editor />} />
+        <Route path="/background-remover" element={<RemoveBackground />} />
+        <Route path="*" element={<Page404 />} />
+      </Routes>
+
+
+    </Router>
   )
 
 }

@@ -1,0 +1,14 @@
+.btn-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+  .btn-container .btn {
+    margin-bottom: 20px;
+    width: 300px
+  }
+  .btn-container .btn:last-child {
+    margin-bottom: 0;
+  }

@@ -2,6 +2,9 @@ import './RemoveBackground.css'
 import { fabric } from 'fabric';
 import React, { useRef } from 'react';
 
+
+import { Link } from 'react-router-dom'
+
 function RemoveBackground() {
 
     var canvas
@@ -77,9 +80,16 @@ function RemoveBackground() {
                 const viewportWidth = window.innerWidth;
                 const viewportHeight = window.innerHeight;
 
+
                 // 원하는 캔버스 크기 계산 (예: 뷰포트의 80% 크기로 설정)
-                const maxCanvasWidth = viewportWidth * 0.8;
-                const maxCanvasHeight = viewportHeight * 0.8;
+                let maxCanvasWidth = viewportWidth * 0.6;
+                let maxCanvasHeight = viewportHeight * 0.6;
+
+                if (viewportWidth < 900) {
+                    maxCanvasWidth = viewportWidth * 0.8;
+                    maxCanvasHeight = viewportHeight * 0.6;
+                }
+
 
                 // 이미지의 원본 크기와 비교하여 스케일 계산
                 scaleX = maxCanvasWidth / originalWidth;
@@ -117,7 +127,6 @@ function RemoveBackground() {
         const formData = new FormData();
         const imageFile = fileInputRef.current.files[0];
 
-        console.log('imageFile : ' + imageFile)
         formData.append('image', imageFile);
 
         overlayRef.current.style.display = 'inherit'
@@ -170,8 +179,14 @@ function RemoveBackground() {
                     const viewportHeight = window.innerHeight;
 
                     // 원하는 캔버스 크기 계산 (예: 뷰포트의 80% 크기로 설정)
-                    const maxCanvasWidth = viewportWidth * 0.8;
-                    const maxCanvasHeight = viewportHeight * 0.8;
+                    let maxCanvasWidth = viewportWidth * 0.6;
+                    let maxCanvasHeight = viewportHeight * 0.6;
+
+                    if (viewportWidth < 900) {
+                        maxCanvasWidth = viewportWidth * 0.8;
+                        maxCanvasHeight = viewportHeight * 0.6;
+                    }
+
 
                     // 이미지의 원본 크기와 비교하여 스케일 계산
                     scaleX = maxCanvasWidth / originalWidth;
@@ -259,26 +274,26 @@ function RemoveBackground() {
             </div>
             <div className="editor-container">
                 <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-                    <div className="d-flex flex-row">
-                        <div className="p-3 text-secondary">Editor</div>
-                        <div className="p-3">Background Remover</div>
-                        <div className="p-3 text-secondary">Transfer Format</div>
+                    <div className="container-fluid">
+                        <a className="navbar-brand" href="" style={{ fontSize: '20px' }}>Background Remover</a>
+                        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                            <span className="navbar-toggler-icon"></span>
+                        </button>
+                        <div className="collapse navbar-collapse" id="navbarNav">
+                            <ul className="navbar-nav">
+
+                                <li className="nav-item">
+                                    <Link to="/editor" className='nav-link'>Editor</Link>
+                                </li>
+
+                            </ul>
+                        </div>
                     </div>
                 </nav>
 
 
-                <div className="canvas-area" style={{ backgroundColor: 'rgb(221 221 221)', paddingTop: '20px' }} id="canvas-area">
+                <div className="canvas-area" style={{ paddingTop: '20px' }} id="canvas-area">
                     <canvas id="myCanvas" style={{ width: '1px', height: '1px', opacity: 0 }} ref={canvasRef}></canvas>
-
-
-                    <div className="overlay" ref={overlayRef} style={{ display: 'none' }}>
-                        <div className='spinner-wrap'>
-                            <div className="spinner-border text-light" style={{ width: '3rem', height: '3rem' }} role="status">
-                                <span className="sr-only">Loading...</span>
-                            </div>
-                            <div className="text-light mt-2" style={{ fontSize : '1.5rem'}}>wait...</div>
-                        </div>
-                    </div>
 
                     <div className='button-wrap' ref={buttonsRef}>
                         <button type="button" className="btn btn-primary btn-lg btn-block" onClick={() => { fileInputRef.current.click() }}>Select Image</button>
@@ -286,9 +301,20 @@ function RemoveBackground() {
                             onClick={() => {
                                 if (!imgObj) {
                                     alert('Please! enter your image')
+                                    return
                                 }
                                 removeBackground()
                             }}>Transfer</button>
+                    </div>
+
+
+                    <div className="overlay" ref={overlayRef} style={{ display: 'none' }}>
+                        <div className='spinner-wrap'>
+                            <div className="spinner-border text-light" style={{ width: '3rem', height: '3rem' }} role="status">
+                                <span className="sr-only">Loading...</span>
+                            </div>
+                            <div className="text-light mt-2" style={{ fontSize: '1.5rem' }}>wait...</div>
+                        </div>
                     </div>
 
                 </div>

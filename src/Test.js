@@ -1,67 +1,38 @@
-import React, { useEffect, useRef } from 'react';
-import { fabric } from 'fabric';
+import React, { useEffect, useRef, useState } from 'react';
+import './Test.css'
 
-function Test() {
-  const canvasRef = useRef(null);
-  const fileInputRef = useRef(null);
-  let canvas;
-  var imgObj;
-  useEffect(() => {
-    // 캔버스 초기화
-    canvas = new fabric.Canvas('myCanvas', {
-      backgroundColor: 'rgb(18,18,36)',
-    });
 
-    return () => {
-      if (canvas) {
-        canvas.dispose();
+const Test = () => {
+
+  let i = 0;
+  function makeProgress() {
+      if(i < 100){
+          i++;
+          document.querySelector('.progress-bar').style.width = i + '%';
+          document.querySelector('.progress-bar').textContent = i + ' %';
       }
-    };
-  }, []);
+      // Wait for sometime before running this script again
+      setTimeout(makeProgress, 200);
+  }
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        fabric.Image.fromURL(e.target.result, function (img) {
-          canvas.clear(); // 이전 내용을 지우고 새 이미지로 교체
-          
-          img.set({
-            left: 100,
-            top: 100,
-            selectable: false,
-          });
+  function test11() {
+    console.log('qwdqwdqw')
+  }
 
-          imgObj = img
-          canvas.add(img);
-          canvas.renderAll();
+  useEffect(() => {
+    makeProgress()
+    test11()
+  }, [])
 
-          // 이미지에 클릭 이벤트 등록
-          imgObj.on('mousedown', () => {
-            console.log('이미지 클릭됨');
-          });
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   return (
-    <div>
-      <div className="editor-container">
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/*"
-          onChange={handleFileChange}
-        />
-        <div className="canvas-area" style={{ backgroundColor: 'rgb(221 221 221)' }}>
-          <canvas id="myCanvas" ref={canvasRef} style={{ display: 'block' }}></canvas>
-        </div>
+    <div className="container">
+      <h3>Animated Progress Bar</h3>
+      <div className="progress">
+        <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style={{width : '75%'}}></div>
       </div>
     </div>
   );
-}
+};
 
 export default Test;

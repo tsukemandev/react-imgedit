@@ -45,8 +45,8 @@ function Home() {
                 <div className="row">
                     <div className="col-12">
                         <div className="btn-container">
-                            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={goToEditor}>Editor</button>
-                            <button type="button" className="btn btn-primary btn-lg btn-block" onClick={goToBackgroundRemover}>Background Remover</button>
+                            <a className="btn btn-primary btn-lg btn-block" href="/editor" role="button">Editor</a>
+                            <a className="btn btn-primary btn-lg btn-block" href="/background-remover" role="button">Background Remover</a>
                         </div>
                     </div>
                 </div>

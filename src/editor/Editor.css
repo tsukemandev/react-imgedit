@@ -16,6 +16,7 @@ html {
     background-color: #1e272e;
     color: white;
     padding: 10px 20px;
+    z-index: 200;
 }
 
 .navbar .logo {
@@ -189,7 +190,7 @@ html {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1050; /* 높은 z-index 값 */
+    z-index: 100; /* 높은 z-index 값 */
   }
   
 

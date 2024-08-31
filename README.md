@@ -16,13 +16,15 @@ An online web editing service that can edit images and even remove backgrounds u
 <br>
 
 
-## Utilizing AI functions using TensorFlow
+## Utilizing AI feature using TensorFlow
 
-We hosted AI functions using Firebase or AWS Lambda functions.
+We hosted AI feature using Firebase functions or AWS Lambda functions.
 
 ![screenshot](./imgs/img1.png)
 
+## Customizing Fabric.js
 
+Implementing crop and filtering featurs by customizing fabric.js, a canvas library
 
 ![screenshot](./imgs/img2.png)
 
@@ -59,7 +61,6 @@ $ npm start
 
 * Bootstrap (HTML, CSS)
 * Fabric.js ( Drawing Canvas Lib )
-
 * Javascript 
 * React.js ( React-route-dom, React-Helmet )
 * Python ( Background Remover AI )
